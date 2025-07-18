@@ -20,25 +20,25 @@ def export_model(model_path: str = 'ball_detection_model.pt'):
         print("Please train the model first using train_model.py")
         return
     
-    print(f"📦 Exporting model to TorchScript format from {model_path}")
+    print(f"📦 Exporting model from {model_path}")
     
     # Load the model
     model = YOLO(model_path)
     
-    # Export formats - using TorchScript for now (most stable)
+    # Export formats
     export_formats = {
-        'torchscript': '.torchscript',  # TorchScript format (most stable)
-        # 'onnx': '.onnx',  # ONNX format (having compatibility issues)
-        # 'coreml': '.mlmodel',  # CoreML for iOS (having compatibility issues)
-        # 'engine': '.engine',  # TensorRT
-        # 'saved_model': '_saved_model',  # TensorFlow SavedModel
-        # 'pb': '.pb',  # TensorFlow GraphDef
-        # 'tflite': '.tflite',  # TensorFlow Lite
-        # 'edgetpu': '_edgetpu.tflite',  # Edge TPU
-        # 'tfjs': '_web_model',  # TensorFlow.js
-        # 'paddle': '_paddle_model',  # PaddlePaddle
-        # 'ncnn': '_ncnn_model',  # NCNN
-        # 'openvino': '_openvino_model',  # OpenVINO
+        'torchscript': '.torchscript',
+        'onnx': '.onnx',
+       # 'engine': '.engine',  # TensorRT
+        #'coreml': '.mlmodel',  # CoreML for iOS
+        #'saved_model': '_saved_model',  # TensorFlow SavedModel
+       # 'pb': '.pb',  # TensorFlow GraphDef
+       # 'tflite': '.tflite',  # TensorFlow Lite
+       # 'edgetpu': '_edgetpu.tflite',  # Edge TPU
+       # 'tfjs': '_web_model',  # TensorFlow.js
+       # 'paddle': '_paddle_model',  # PaddlePaddle
+       # 'ncnn': '_ncnn_model',  # NCNN
+       # 'openvino': '_openvino_model',  # OpenVINO
     }
     
     exported_files = []

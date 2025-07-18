@@ -139,6 +139,15 @@
             box-shadow: 0 8px 25px rgba(231, 76, 60, 0.4);
         }
         
+        .btn-info-custom {
+            background: linear-gradient(45deg, #17a2b8, #138496);
+            box-shadow: 0 5px 15px rgba(23, 162, 184, 0.3);
+        }
+        
+        .btn-info-custom:hover {
+            box-shadow: 0 8px 25px rgba(23, 162, 184, 0.4);
+        }
+        
         .preview-container {
             display: flex;
             flex-wrap: wrap;
@@ -222,6 +231,11 @@
                         </div>
                         <h3>Live Webcam</h3>
                         <p>Use your webcam for real-time ball detection</p>
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <strong>Note:</strong> Webcam functionality is not available in Cloud Run environment. 
+                            Please use the video upload feature for ball detection.
+                        </div>
                         
                         <div class="webcam-container">
                             <img id="webcamVideo" class="webcam-video" style="display: none;">
@@ -239,6 +253,9 @@
                             </button>
                             <button id="stopWebcam" class="btn btn-custom btn-danger-custom" style="display: none;">
                                 <i class="fas fa-stop"></i> Stop Webcam
+                            </button>
+                            <button id="testModel" class="btn btn-custom btn-info-custom ms-2">
+                                <i class="fas fa-cog"></i> Test Model
                             </button>
                         </div>
                     </div>
@@ -260,6 +277,7 @@
         const webcamOverlay = document.getElementById('webcamOverlay');
         const startWebcamBtn = document.getElementById('startWebcam');
         const stopWebcamBtn = document.getElementById('stopWebcam');
+        const testModelBtn = document.getElementById('testModel');
         
         let webcamActive = false;
         
@@ -328,29 +346,60 @@
         }
         
         function displayVideoResults(data) {
-            const { preview_frames, video_info } = data;
+            const { preview_frames, video_info, message } = data;
             
             let html = `
                 <div class="alert alert-custom alert-success">
-                    <h5><i class="fas fa-check-circle"></i> Video Processed Successfully!</h5>
+                    <h5><i class="fas fa-check-circle"></i> Video Analysis Complete!</h5>
                     <p><strong>Video Info:</strong> ${video_info.width}x${video_info.height} @ ${video_info.fps}fps (${video_info.total_frames} frames)</p>
+                    <p><strong>Processed:</strong> ${video_info.frames_processed} frames</p>
+                    <p><strong>Detection Rate:</strong> ${video_info.detection_rate}%</p>
+                    <p><strong>Message:</strong> ${message}</p>
                 </div>
-                <h5>Preview Frames:</h5>
-                <div class="preview-container">
             `;
             
-            preview_frames.forEach((frameData, index) => {
-                const detectionCount = frameData.detections.length;
+            if (preview_frames.length === 0) {
                 html += `
-                    <div class="text-center">
-                        <img src="data:image/jpeg;base64,${frameData.frame}" 
-                             class="preview-frame" alt="Frame ${index + 1}">
-                        <p class="mt-2"><strong>Frame ${index + 1}:</strong> ${detectionCount} ball(s) detected</p>
+                    <div class="alert alert-custom alert-warning">
+                        <h5><i class="fas fa-exclamation-triangle"></i> No Balls Detected</h5>
+                        <p>No soccer balls were found in the video. This could mean:</p>
+                        <ul>
+                            <li>The video doesn't contain soccer balls</li>
+                            <li>The balls are too small or blurry</li>
+                            <li>The lighting conditions are poor</li>
+                            <li>Try uploading a different video with clearer ball visibility</li>
+                        </ul>
                     </div>
                 `;
-            });
+            } else {
+                html += `
+                    <h5><i class="fas fa-futbol"></i> Detected Balls (${preview_frames.length} frames):</h5>
+                    <div class="preview-container">
+                `;
+                
+                preview_frames.forEach((frameData, index) => {
+                    const detectionCount = frameData.detections.length;
+                    const frameNumber = frameData.frame_number || (index + 1);
+                    const confidenceScores = frameData.confidence_scores || [];
+                    
+                    html += `
+                        <div class="text-center">
+                            <img src="data:image/jpeg;base64,${frameData.frame}" 
+                                 class="preview-frame" alt="Frame ${frameNumber}">
+                            <p class="mt-2"><strong>Frame ${frameNumber}:</strong> ${detectionCount} ball(s) detected</p>
+                    `;
+                    
+                    if (confidenceScores.length > 0) {
+                        const avgConfidence = (confidenceScores.reduce((a, b) => a + b, 0) / confidenceScores.length * 100).toFixed(1);
+                        html += `<p class="text-muted"><small>Avg Confidence: ${avgConfidence}%</small></p>`;
+                    }
+                    
+                    html += `</div>`;
+                });
+                
+                html += '</div>';
+            }
             
-            html += '</div>';
             uploadResults.innerHTML = html;
         }
         
@@ -396,6 +445,30 @@
                         console.error('Error:', error);
                     });
             }
+        });
+        
+        // Test model functionality
+        testModelBtn.addEventListener('click', () => {
+            testModelBtn.disabled = true;
+            testModelBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testing...';
+            
+            fetch('/test_model')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showAlert(`✅ ${data.message}`, 'success');
+                    } else {
+                        showAlert(`❌ ${data.message}: ${data.error}`, 'danger');
+                    }
+                })
+                .catch(error => {
+                    showAlert('Failed to test model.', 'danger');
+                    console.error('Error:', error);
+                })
+                .finally(() => {
+                    testModelBtn.disabled = false;
+                    testModelBtn.innerHTML = '<i class="fas fa-cog"></i> Test Model';
+                });
         });
         
         function showAlert(message, type) {

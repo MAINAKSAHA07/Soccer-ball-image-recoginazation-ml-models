@@ -1,0 +1,69 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+web_env/
+ball_detection_env/
+coreml_env/
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Documentation
+*.md
+README*
+
+# Test files
+test_detection.py
+*.jpg
+*.png
+*.mp4
+*.avi
+
+# Cache and logs
+*.cache
+runs/
+logs/
+
+# Model files (we'll copy the specific one we need)
+*.torchscript
+*.onnx
+*.mlpackage
+yolov8n.pt
+
+# Other
+.env
+*.log 

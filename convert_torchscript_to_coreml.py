@@ -55,7 +55,7 @@ def convert_torchscript_to_coreml(torchscript_path: str = 'ball_detection_model.
         )
         
         # Save the CoreML model
-        coreml_path = torchscript_path.replace('.torchscript', '.mlpackage')
+        coreml_path = torchscript_path.replace('.torchscript', '.mlmodel')
         coreml_model.save(coreml_path)
         
         print(f"✅ Successfully converted to CoreML: {coreml_path}")
