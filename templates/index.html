@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soccer Ball Detection</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .main-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            margin: 2rem auto;
+            padding: 2rem;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        .header h1 {
+            color: #2c3e50;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .header p {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+        }
+        
+        .feature-card {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+        }
+        
+        .feature-icon {
+            font-size: 3rem;
+            color: #3498db;
+            margin-bottom: 1rem;
+        }
+        
+        .upload-area {
+            border: 3px dashed #bdc3c7;
+            border-radius: 15px;
+            padding: 3rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            background: #f8f9fa;
+        }
+        
+        .upload-area:hover {
+            border-color: #3498db;
+            background: #ecf0f1;
+        }
+        
+        .upload-area.dragover {
+            border-color: #2ecc71;
+            background: #d5f4e6;
+        }
+        
+        .webcam-container {
+            position: relative;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .webcam-video {
+            width: 100%;
+            height: 400px;
+            object-fit: cover;
+            background: #000;
+        }
+        
+        .webcam-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+        }
+        
+        .btn-custom {
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            border: none;
+            border-radius: 25px;
+            padding: 12px 30px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        }
+        
+        .btn-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(52, 152, 219, 0.4);
+        }
+        
+        .btn-success-custom {
+            background: linear-gradient(45deg, #2ecc71, #27ae60);
+            box-shadow: 0 5px 15px rgba(46, 204, 113, 0.3);
+        }
+        
+        .btn-success-custom:hover {
+            box-shadow: 0 8px 25px rgba(46, 204, 113, 0.4);
+        }
+        
+        .btn-danger-custom {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.3);
+        }
+        
+        .btn-danger-custom:hover {
+            box-shadow: 0 8px 25px rgba(231, 76, 60, 0.4);
+        }
+        
+        .preview-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .preview-frame {
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            max-width: 200px;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .alert-custom {
+            border-radius: 15px;
+            border: none;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="main-container">
+            <div class="header">
+                <h1><i class="fas fa-futbol"></i> Soccer Ball Detection</h1>
+                <p>Upload a video or use your webcam to detect soccer balls in real-time</p>
+            </div>
+            
+            <div class="row">
+                <!-- Video Upload Section -->
+                <div class="col-lg-6">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-upload"></i>
+                        </div>
+                        <h3>Upload Video</h3>
+                        <p>Upload a video file to analyze and detect soccer balls</p>
+                        
+                        <div class="upload-area" id="uploadArea">
+                            <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                            <h5>Drag & Drop Video Here</h5>
+                            <p class="text-muted">or click to browse files</p>
+                            <input type="file" id="videoInput" accept="video/*" style="display: none;">
+                        </div>
+                        
+                        <div class="loading" id="uploadLoading">
+                            <div class="spinner"></div>
+                            <p>Processing video...</p>
+                        </div>
+                        
+                        <div id="uploadResults" class="mt-3"></div>
+                    </div>
+                </div>
+                
+                <!-- Webcam Section -->
+                <div class="col-lg-6">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-camera"></i>
+                        </div>
+                        <h3>Live Webcam</h3>
+                        <p>Use your webcam for real-time ball detection</p>
+                        
+                        <div class="webcam-container">
+                            <img id="webcamVideo" class="webcam-video" style="display: none;">
+                            <div id="webcamOverlay" class="webcam-overlay">
+                                <div class="text-center">
+                                    <i class="fas fa-camera fa-3x mb-3"></i>
+                                    <p>Click "Start Webcam" to begin</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="text-center mt-3">
+                            <button id="startWebcam" class="btn btn-custom btn-success-custom me-2">
+                                <i class="fas fa-play"></i> Start Webcam
+                            </button>
+                            <button id="stopWebcam" class="btn btn-custom btn-danger-custom" style="display: none;">
+                                <i class="fas fa-stop"></i> Stop Webcam
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Video Upload Functionality
+        const uploadArea = document.getElementById('uploadArea');
+        const videoInput = document.getElementById('videoInput');
+        const uploadLoading = document.getElementById('uploadLoading');
+        const uploadResults = document.getElementById('uploadResults');
+        
+        // Webcam Functionality
+        const webcamVideo = document.getElementById('webcamVideo');
+        const webcamOverlay = document.getElementById('webcamOverlay');
+        const startWebcamBtn = document.getElementById('startWebcam');
+        const stopWebcamBtn = document.getElementById('stopWebcam');
+        
+        let webcamActive = false;
+        
+        // Upload area click handler
+        uploadArea.addEventListener('click', () => {
+            videoInput.click();
+        });
+        
+        // Drag and drop functionality
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleVideoUpload(files[0]);
+            }
+        });
+        
+        // File input change handler
+        videoInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleVideoUpload(e.target.files[0]);
+            }
+        });
+        
+        function handleVideoUpload(file) {
+            if (!file.type.startsWith('video/')) {
+                showAlert('Please select a valid video file.', 'danger');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('video', file);
+            
+            uploadLoading.style.display = 'block';
+            uploadResults.innerHTML = '';
+            
+            fetch('/upload_video', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                uploadLoading.style.display = 'none';
+                
+                if (data.success) {
+                    displayVideoResults(data);
+                } else {
+                    showAlert(data.error || 'An error occurred while processing the video.', 'danger');
+                }
+            })
+            .catch(error => {
+                uploadLoading.style.display = 'none';
+                showAlert('An error occurred while uploading the video.', 'danger');
+                console.error('Error:', error);
+            });
+        }
+        
+        function displayVideoResults(data) {
+            const { preview_frames, video_info } = data;
+            
+            let html = `
+                <div class="alert alert-custom alert-success">
+                    <h5><i class="fas fa-check-circle"></i> Video Processed Successfully!</h5>
+                    <p><strong>Video Info:</strong> ${video_info.width}x${video_info.height} @ ${video_info.fps}fps (${video_info.total_frames} frames)</p>
+                </div>
+                <h5>Preview Frames:</h5>
+                <div class="preview-container">
+            `;
+            
+            preview_frames.forEach((frameData, index) => {
+                const detectionCount = frameData.detections.length;
+                html += `
+                    <div class="text-center">
+                        <img src="data:image/jpeg;base64,${frameData.frame}" 
+                             class="preview-frame" alt="Frame ${index + 1}">
+                        <p class="mt-2"><strong>Frame ${index + 1}:</strong> ${detectionCount} ball(s) detected</p>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            uploadResults.innerHTML = html;
+        }
+        
+        // Webcam functionality
+        startWebcamBtn.addEventListener('click', () => {
+            if (!webcamActive) {
+                fetch('/start_webcam')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            webcamActive = true;
+                            webcamVideo.style.display = 'block';
+                            webcamOverlay.style.display = 'none';
+                            webcamVideo.src = '/webcam_feed';
+                            startWebcamBtn.style.display = 'none';
+                            stopWebcamBtn.style.display = 'inline-block';
+                        } else {
+                            showAlert(data.message, 'warning');
+                        }
+                    })
+                    .catch(error => {
+                        showAlert('Failed to start webcam.', 'danger');
+                        console.error('Error:', error);
+                    });
+            }
+        });
+        
+        stopWebcamBtn.addEventListener('click', () => {
+            if (webcamActive) {
+                fetch('/stop_webcam')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            webcamActive = false;
+                            webcamVideo.style.display = 'none';
+                            webcamOverlay.style.display = 'flex';
+                            startWebcamBtn.style.display = 'inline-block';
+                            stopWebcamBtn.style.display = 'none';
+                        }
+                    })
+                    .catch(error => {
+                        showAlert('Failed to stop webcam.', 'danger');
+                        console.error('Error:', error);
+                    });
+            }
+        });
+        
+        function showAlert(message, type) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-custom alert-${type} alert-dismissible fade show`;
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            
+            uploadResults.innerHTML = '';
+            uploadResults.appendChild(alertDiv);
+            
+            // Auto-dismiss after 5 seconds
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.remove();
+                }
+            }, 5000);
+        }
+    </script>
+</body>
+</html> 
